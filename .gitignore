@@ -1,0 +1,11 @@
+./block/*.out
+./block/*.o
+
+/mining/*.out
+/mining/*.o
+
+/sha256/*.out
+/sha256/*.o
+
+/utils/*.out
+/utils/*.o
