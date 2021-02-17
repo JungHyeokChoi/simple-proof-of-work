@@ -5,6 +5,7 @@
 #include "mining.h"
 #include "../utils/utils.h"
 #include "../block/block.h"
+#include "../common/common.h"
 
 int main() {
     BlockList* pList;
@@ -18,16 +19,34 @@ int main() {
 
     pList = createBlockList();
 
+    // block.header.version = 0x20800000;
+    // memmove(block.header.prev_block, prev_block, sizeof(prev_block) / sizeof(uint8_t));
+    // memmove(block.header.merkle_root, merkle_root, sizeof(merkle_root) / sizeof(uint8_t));
+    // block.header.timestamp = timeToHex(time(&sec));
+    // block.header.bits = 0x1d00ffff;
+    // block.header.nonce = lower_mining(pBlock, 0x00000000, 0xffffffff);
+
+    // if(verify(pBlock)) {
+    //     addBlock(pList, block);
+    //     printBlock(pList, 0);
+    // } else {
+    //     printf("Fail!! Create Block\n");
+    // }
+
     block.header.version = 0x20800000;
     memmove(block.header.prev_block, prev_block, sizeof(prev_block) / sizeof(uint8_t));
     memmove(block.header.merkle_root, merkle_root, sizeof(merkle_root) / sizeof(uint8_t));
     block.header.timestamp = timeToHex(time(&sec));
     block.header.bits = 0x1d00ffff;
+    block.header.nonce = upper_mining(pBlock, 0xffffffff, 0x00000000);
 
-    mining(pBlock);
-
-    addBlock(pList, block);
-    getBlock(pList, 0);
+    if(verify(pBlock)) {
+        addBlock(pList, block);
+        printBlock(pList, 0);
+    } else {
+        printf("Fail!! Create Block\n");
+    }
+    
 
     clearBlockList(pList);
 

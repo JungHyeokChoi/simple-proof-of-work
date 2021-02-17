@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+#define BLOCK_HEADER_SIZE 80
+#define BLOCK_HEADER_STRING_SIZE 161
+
 typedef struct BlockHeaderType {
     int32_t version; // Hex
     uint8_t prev_block[32]; // Hex

@@ -15,6 +15,7 @@
 
 /****************************** MACROS ******************************/
 #define SHA256_BLOCK_SIZE 32            // SHA256 outputs a 32 byte digest
+#define SHA256_STRING_BLOCK_SIZE 65            // SHA256 outputs a 65 byte digest
 
 typedef struct {
 	uint8_t data[64];

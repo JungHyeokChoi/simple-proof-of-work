@@ -9,3 +9,5 @@
 
 /utils/*.out
 /utils/*.o
+
+.vscode
