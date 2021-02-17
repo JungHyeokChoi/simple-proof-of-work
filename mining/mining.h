@@ -4,7 +4,9 @@
 #include <stdint.h>
 #include "../block/block.h"
 
-void mining(Block* pBlock);
-void difficulty(uint32_t bits, char* current_target, int n);
+int verify(Block* pBlock);
+char* difficulty(uint32_t bits, int n);
+uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end);
+uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end);
 
 #endif

@@ -1,5 +1,5 @@
-./block/*.out
-./block/*.o
+/block/*.out
+/block/*.o
 
 /mining/*.out
 /mining/*.o
@@ -9,3 +9,5 @@
 
 /utils/*.out
 /utils/*.o
+
+.vscode
