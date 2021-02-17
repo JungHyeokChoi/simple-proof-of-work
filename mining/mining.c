@@ -80,11 +80,11 @@ uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
 	uint8_t buf[SHA256_BLOCK_SIZE];
     uint8_t temp[9];
 
-	uint32_t nonce = nonce_start;
+	uint32_t nonce = 0;
 
 	SHA256_CTX ctx;
 
-	int compare_zero_digit, pass = 1;
+	int i, compare_zero_digit, pass = 1;
     char* difficulty_str = difficulty(pBlock->header.bits, SHA256_STRING_BLOCK_SIZE);
 	char *sha256;
 
@@ -98,42 +98,42 @@ uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     strcat(header_str, temp);
     sprintf(temp, "%x", pBlock->header.bits);
     strcat(header_str, temp);
+    sprintf(temp, "%08x", nonce_start);
+    strcat(header_str, temp);
+    header_str[BLOCK_HEADER_STRING_SIZE] = '\0';
 
     compare_zero_digit = (strlen(difficulty_str) - ((8 * ((pBlock->header.bits >> 24) - 3)) / 4)) - 6;
 
 	while(nonce >= nonce_end) {
-		sprintf(nonce_str, "%08x", nonce);
-
-		uint8_t *pHeader_str = (uint8_t*)malloc(sizeof(uint8_t)*(strlen(header_str) + strlen(nonce_str) - 1));
-
-		strcat(pHeader_str, header_str);
-		strcat(pHeader_str, nonce_str);
+        for(i = 0; i < strlen(nonce_str); i++) 
+		    header_str[BLOCK_HEADER_STRING_SIZE - strlen(nonce_str) + i] = nonce_str[i];
 
 		sha256_init(&ctx);
-		sha256_update(&ctx, pHeader_str, strlen(pHeader_str));
+		sha256_update(&ctx, header_str, strlen(header_str));
 		sha256_final(&ctx, buf);
 
 		sha256 = ConvertUint8ToHexStr(buf, sizeof(buf)/sizeof(uint8_t));
 
 		printf("nonce : %x\n", nonce);
-		printf("pHeader_str : %s\n", pHeader_str);
+		printf("header_str : %s\n", header_str);
 		printf("sha256 : 0x%s\n", sha256);
         printf("difficulty : 0x%s\n", difficulty_str);
         printf("Compare digit : %d\n", compare_zero_digit);
         printf("Compare Result : %d\n", strncmp(difficulty_str, sha256, compare_zero_digit));
 		printf("\n\n");
 
-        free(sha256);
-		free(pHeader_str);
-
 		if (strncmp(difficulty_str, sha256, compare_zero_digit) == 0) break;
-	
+    
+        free(sha256);
+
 		nonce--;
+		sprintf(nonce_str, "%08x", nonce);
 	}
 
     nonce = (uint32_t)strtoul(nonce_str, NULL, 16);
 
     free(difficulty_str);
+    free(sha256);
 
     return nonce;
 }
@@ -148,7 +148,7 @@ uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
 
 	SHA256_CTX ctx;
 
-	int compare_zero_digit, pass = 1;
+	int i, compare_zero_digit, pass = 1;
     char* difficulty_str = difficulty(pBlock->header.bits, SHA256_STRING_BLOCK_SIZE);
 	char *sha256;
 
@@ -162,42 +162,45 @@ uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     strcat(header_str, temp);
     sprintf(temp, "%x", pBlock->header.bits);
     strcat(header_str, temp);
+    sprintf(temp, "%08x", nonce_start);
+    strcat(header_str, temp);
+    header_str[BLOCK_HEADER_STRING_SIZE] = '\0';
 
     compare_zero_digit = (strlen(difficulty_str) - ((8 * ((pBlock->header.bits >> 24) - 3)) / 4)) - 6;
 
 	while(nonce <= nonce_end) {
-		sprintf(nonce_str, "%08x", nonce);
-
-		uint8_t *pHeader_str = (uint8_t*)malloc(sizeof(uint8_t)*(strlen(header_str) + strlen(nonce_str) - 1));
-
-		strcat(pHeader_str, header_str);
-		strcat(pHeader_str, nonce_str);
+        for(i = 0; i < strlen(nonce_str); i++) 
+		    header_str[BLOCK_HEADER_STRING_SIZE - strlen(nonce_str) + i] = nonce_str[i];
 
 		sha256_init(&ctx);
-		sha256_update(&ctx, pHeader_str, strlen(pHeader_str));
+		sha256_update(&ctx, header_str, strlen(header_str));
 		sha256_final(&ctx, buf);
 
 		sha256 = ConvertUint8ToHexStr(buf, sizeof(buf)/sizeof(uint8_t));
 
 		printf("nonce : %x\n", nonce);
-		printf("pHeader_str : %s\n", pHeader_str);
+		printf("header_str : %s\n", header_str);
 		printf("sha256 : 0x%s\n", sha256);
         printf("difficulty : 0x%s\n", difficulty_str);
         printf("Compare digit : %d\n", compare_zero_digit);
         printf("Compare Result : %d\n", strncmp(difficulty_str, sha256, compare_zero_digit));
 		printf("\n\n");
 
-        free(sha256);
-		free(pHeader_str);
-
 		if (strncmp(difficulty_str, sha256, compare_zero_digit) == 0) break;
-	
+    
+        free(sha256);
+
 		nonce++;
+		sprintf(nonce_str, "%08x", nonce);
 	}
 
     nonce = (uint32_t)strtoul(nonce_str, NULL, 16);
 
+    printf("sha256 : 0x%s\n", sha256);
+    printf("nonce : %x\n", nonce);
+
     free(difficulty_str);
+    free(sha256);
 
     return nonce;
 }
