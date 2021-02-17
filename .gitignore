@@ -1,5 +1,5 @@
-./block/*.out
-./block/*.o
+/block/*.out
+/block/*.o
 
 /mining/*.out
 /mining/*.o
