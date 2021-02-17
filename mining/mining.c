@@ -89,8 +89,4 @@ void mining(Block* pBlock) {
 
     pBlock->header.nonce = ConvertHexStrToUint8(nonce_str);
     memmove(pBlock->block_hash, buf, sizeof(buf) / sizeof(uint8_t));
-
-	printf("Result\n");
-	printf("Nonce : %d, 0x%x\n", nonce, nonce);
-	printf("sha256 : 0x%s\n", ConvertUint8ToHexStr(buf, sizeof(buf)/sizeof(uint8_t)));
 }

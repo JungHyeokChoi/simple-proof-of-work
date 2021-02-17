@@ -27,7 +27,8 @@ int main() {
     mining(pBlock);
 
     addBlock(pList, block);
-    getBlock(pList, 0);
+    
+    printBlock(pList, 0);
 
     clearBlockList(pList);
 
