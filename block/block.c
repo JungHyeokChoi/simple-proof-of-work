@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "blocklist.h"
-#include "common.h"
+#include "block.h"
+#include "../common/common.h"
+#include "../utils/utils.h"
 
 BlockList* createBlockList(){
 	BlockList* pReturn = NULL;
@@ -38,7 +39,7 @@ int addBlock(BlockList* pList, Block block) {
 
             pPreBlock = &(pList->genesisBlock);
             for (i = 0; i < pList->currentBlockCount; i++) {
-                pPreBlock = pNewBlock->pBlock;
+                pPreBlock = pPreBlock->pBlock;
             }
 
             pNewBlock->pBlock = pPreBlock->pBlock;
@@ -67,7 +68,7 @@ int removeBlock(BlockList* pList, int block_number) {
 	Block* pDelBlock = NULL;
 
 	if (pList != NULL) {
-		arrayCount = getLinkedListLengh(pList);
+		arrayCount = getBlockListLengh(pList);
 		if (block_number >= 0 && block_number < arrayCount) {
 			pBlock = &(pList->genesisBlock);
 			for (i = 0; i < block_number; i++) {
@@ -136,4 +137,18 @@ int getBlockListLengh(BlockList* pList){
 	}
     
 	return ret;
+}
+
+void printBlock(BlockList* pList, int block_number) {
+	Block* pBlock;
+
+	pBlock = getBlock(pList, block_number);
+
+	printf("Block Hash : 0x%s\n", ConvertUint8ToHexStr(pBlock->block_hash, sizeof(pBlock->block_hash) / sizeof(uint8_t)));
+	printf("Version : 0x%x\n", pBlock->header.version);
+	printf("Prev Block : 0x%s\n", ConvertUint8ToHexStr(pBlock->header.prev_block, sizeof(pBlock->header.prev_block) / sizeof(uint8_t)));
+	printf("Merkle Root : 0x%s\n", ConvertUint8ToHexStr(pBlock->header.merkle_root, sizeof(pBlock->header.merkle_root) / sizeof(uint8_t)));
+	printf("Timestamp : 0x%x\n", pBlock->header.timestamp);
+	printf("Bits : 0x%x\n", pBlock->header.bits);
+	printf("Nonce : 0x%x\n", pBlock->header.nonce);
 }

@@ -1,22 +1,25 @@
-#ifndef _BLOCKLIST_
-#define _BLOCKLIST_
+#ifndef _BLOCK_
+#define _BLOCK_
+
+#include <stdint.h>
 
 typedef struct BlockHeaderType {
-    __uint8_t version[4];
-    __uint8_t prev_block[32];
-    __uint8_t merkle_root[32];
-    __uint8_t timestamp[4];
-    __uint8_t bits[4];
-    __uint8_t nonce[4]; 
+    int32_t version; // Hex
+    uint8_t prev_block[32]; // Hex
+    uint8_t merkle_root[32]; // Hex
+    uint32_t timestamp; // Hex
+    uint32_t bits; // Hex
+    uint32_t nonce; // Hex
 }BlockHeader;
 
-typedef struct BlockBodyType {
+typedef struct BlockTransactionType {
     /* empty */
-}BlockBody;
+}BlockTransaction;
 
 typedef struct BlockType {
+    uint8_t block_hash[32];
     BlockHeader header;
-    BlockBody body;
+    BlockTransaction transaction;
     struct BlockType* pBlock;
 }Block;
 
@@ -32,5 +35,6 @@ void deleteBlockList(BlockList* pList);
 void clearBlockList(BlockList * pList);
 Block* getBlock(BlockList* pList, int block_number);
 int getBlockListLengh(BlockList* pList);
+void printBlock(BlockList* pList, int block_number);
 
-#endif _BLOCKLIST_
+#endif
