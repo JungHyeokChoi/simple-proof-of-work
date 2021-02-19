@@ -6,6 +6,16 @@
 
 #include "utils.h"
 
+char* slice_array(char* array, int start_idx, int end_idx) {
+    char* slice_arr = (char*)calloc(end_idx - start_idx + 1, sizeof(char));
+
+    for(int idx = start_idx; idx <= end_idx; idx++)
+        slice_arr[idx] = array[start_idx + idx];
+    slice_arr[strlen(slice_arr) + 1] = '\0';
+
+    return slice_arr;
+}
+
 char* ConvertUint8ToHexStr(uint8_t* array, size_t len) {
     char* string = (char*)calloc(len * 2 + 1, sizeof(char));
 

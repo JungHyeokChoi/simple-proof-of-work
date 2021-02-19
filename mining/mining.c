@@ -7,7 +7,35 @@
 #include "../utils/utils.h"
 #include "../common/common.h"
 
-uint8_t* getHeaderString(Block* pBlock, size_t len) {
+BlockHeader* stringToHeader(char* header_str) {
+    BlockHeader* pHeader = malloc(sizeof(struct BlockHeaderType));
+    
+    char* temp = NULL;
+
+    temp = slice_array(header_str, 0, 7);
+    pHeader->version = (uint32_t)strtoul(temp, NULL, 16);
+
+    temp = slice_array(header_str, 8, 71);
+    memmove(pHeader->prev_block, ConvertHexStrToUint8(temp), 32);
+
+    temp = slice_array(header_str, 72, 136);
+    memmove(pHeader->merkle_root, ConvertHexStrToUint8(temp), 32);
+
+    temp = slice_array(header_str, 137, 144);
+    pHeader->timestamp = (uint32_t)strtoul(temp, NULL, 16);
+
+    temp = slice_array(header_str, 145, 152);
+    pHeader->bits = (uint32_t)strtoul(temp, NULL, 16);
+
+    temp = slice_array(header_str, 153, 160);
+    pHeader->nonce = (uint32_t)strtoul(temp, NULL, 16);
+
+    free(temp);
+
+    return pHeader;
+}
+
+uint8_t* headerToString(Block* pBlock, size_t len) {
     uint8_t* header_str = (uint8_t*)calloc(len, sizeof(uint8_t));
     uint8_t temp[9];
 
@@ -22,7 +50,6 @@ uint8_t* getHeaderString(Block* pBlock, size_t len) {
     sprintf(temp, "%08x", pBlock->header.nonce);
     strcat(header_str, temp);
     
-
     return header_str;
 }
 
@@ -50,7 +77,7 @@ char* difficulty(uint32_t bits, size_t len) {
 }
 
 int verify(Block* pBlock) {
-    uint8_t* header_str = getHeaderString(pBlock, BLOCK_HEADER_STRING_SIZE);
+    uint8_t* header_str = headerToString(pBlock, BLOCK_HEADER_STRING_SIZE);
 	uint8_t sha256[SHA256_BLOCK_SIZE];
 
 	SHA256_CTX ctx;
@@ -81,7 +108,7 @@ int verify(Block* pBlock) {
 uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     pBlock->header.nonce = nonce_start;
 
-    uint8_t* header_str = getHeaderString(pBlock, BLOCK_HEADER_STRING_SIZE);
+    uint8_t* header_str = headerToString(pBlock, BLOCK_HEADER_STRING_SIZE);
     uint8_t sha256[SHA256_BLOCK_SIZE];
 
 	uint32_t nonce = 0;
@@ -134,7 +161,7 @@ uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
 uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     pBlock->header.nonce = nonce_start;
 
-    uint8_t* header_str = getHeaderString(pBlock, BLOCK_HEADER_STRING_SIZE);
+    uint8_t* header_str = headerToString(pBlock, BLOCK_HEADER_STRING_SIZE);
     uint8_t sha256[SHA256_BLOCK_SIZE];
 
 	uint32_t nonce = 0;
