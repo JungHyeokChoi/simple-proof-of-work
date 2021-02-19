@@ -145,10 +145,10 @@ void printBlock(BlockList* pList, int block_number) {
 	pBlock = getBlock(pList, block_number);
 
 	printf("Block Hash : 0x%s\n", ConvertUint8ToHexStr(pBlock->block_hash, sizeof(pBlock->block_hash) / sizeof(uint8_t)));
-	printf("Version : 0x%x\n", pBlock->header.version);
+	printf("Version : 0x%08x\n", pBlock->header.version);
 	printf("Prev Block : 0x%s\n", ConvertUint8ToHexStr(pBlock->header.prev_block, sizeof(pBlock->header.prev_block) / sizeof(uint8_t)));
 	printf("Merkle Root : 0x%s\n", ConvertUint8ToHexStr(pBlock->header.merkle_root, sizeof(pBlock->header.merkle_root) / sizeof(uint8_t)));
-	printf("Timestamp : 0x%x\n", pBlock->header.timestamp);
-	printf("Bits : 0x%x\n", pBlock->header.bits);
-	printf("Nonce : 0x%x\n", pBlock->header.nonce);
+	printf("Timestamp : 0x%08x\n", pBlock->header.timestamp);
+	printf("Bits : 0x%08x\n", pBlock->header.bits);
+	printf("Nonce : 0x%08x\n", pBlock->header.nonce);
 }

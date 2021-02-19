@@ -6,28 +6,27 @@
 
 #include "utils.h"
 
-char* ConvertUint8ToHexStr(uint8_t* array, int n) {
-    int i;
-    char* string = (char*)malloc(n * 2 + 1);
+char* ConvertUint8ToHexStr(uint8_t* array, size_t len) {
+    char* string = (char*)calloc(len * 2 + 1, sizeof(char));
 
-    for(i = 0; i < n; i++) {
-        sprintf(&string[strlen(string)], "%02x", array[i]);
+    for(int idx = 0; idx < len; idx++) {
+        sprintf(&string[strlen(string)], "%02x", array[idx]);
     }
+    string[len * 2 + 1] = '\0';
 
     return string;
 }
 
 uint8_t* ConvertHexStrToUint8(char* hex_str) {
-    int i;
     char temp[3];
 
-    uint8_t* array = (uint8_t*)malloc(strlen(hex_str) / 2);
+    uint8_t* array = (uint8_t*)calloc(strlen(hex_str) / 2, sizeof(uint8_t));
 
-    for(i = 0; i < strlen(hex_str); i++) {
-        memcpy(temp, (hex_str + i * 2), 2);
+    for(int idx = 0; idx < strlen(hex_str); idx++) {
+        memcpy(temp, (hex_str + idx * 2), 2);
         temp[2] = '\0';
     
-        array[i] = (uint8_t)strtoul(temp, NULL, 16);
+        array[idx] = (uint8_t)strtoul(temp, NULL, 16);
     }
 
     return array;
@@ -35,10 +34,10 @@ uint8_t* ConvertHexStrToUint8(char* hex_str) {
 
 uint32_t timeToHex(time_t sec) {
     char string[8];
-    uint32_t hex;
 
     sprintf(string, "%lx", sec);
-    hex = (uint32_t)strtoul(string, NULL, 16);
+
+    uint32_t hex = (uint32_t)strtoul(string, NULL, 16);
 
     return hex;
 }
