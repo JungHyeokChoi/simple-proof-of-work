@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 
     pList = createBlockList();
 
-    for(int idx = 0; idx < 10; idx++) {
+    for(int idx = 0; idx < 20; idx++) {
         printf("Create Block #%d...\n\n", idx);
 
         block.header.version = 0x20800000;

@@ -9,33 +9,78 @@
 
 BlockHeader* stringToHeader(char* header_str) {
     BlockHeader* pHeader = malloc(sizeof(struct BlockHeaderType));
-    char* pTemp_char;
-    uint8_t* pTemp_uint8;
+    char* string;
+    uint8_t* sha256;
+
+    string = slice_array(header_str, 0, 7);
+    pHeader->version = (uint32_t)strtoul(string, NULL, 16);
     
-    pHeader->version = (uint32_t)strtoul(slice_array(header_str, 0, 7), NULL, 16);
-    memmove(pHeader->prev_block, ConvertHexStrToUint8(slice_array(header_str, 8, 71)), 32);
-    memmove(pHeader->merkle_root, ConvertHexStrToUint8(slice_array(header_str, 72, 135)), 32);
-    pHeader->timestamp = (uint32_t)strtoul(slice_array(header_str, 136, 143), NULL, 16);
-    pHeader->bits = (uint32_t)strtoul(slice_array(header_str, 144, 151), NULL, 16);
-    pHeader->nonce = (uint32_t)strtoul(slice_array(header_str, 152, 159), NULL, 16);
+    free(string);
+    string = NULL;
+
+    string = slice_array(header_str, 8, 71);
+    sha256 = ConvertHexStrToUint8(string);
+    memmove(pHeader->prev_block, sha256, 32);
+    
+    free(string); free(sha256);
+    string = NULL; sha256 = NULL;
+
+    string = slice_array(header_str, 72, 135);
+    sha256 = ConvertHexStrToUint8(string);
+    memmove(pHeader->merkle_root, sha256, 32);
+
+    free(string); free(sha256);
+    string = NULL; sha256 = NULL;
+
+    string = slice_array(header_str, 136, 143);
+    pHeader->timestamp = (uint32_t)strtoul(string, NULL, 16);
+    
+    free(string);
+    string = NULL;
+    
+    string = slice_array(header_str,  144, 151);
+    pHeader->bits = (uint32_t)strtoul(string, NULL, 16);
+
+    free(string);
+    string = NULL;
+
+    string = slice_array(header_str, 152, 159);
+    pHeader->nonce = (uint32_t)strtoul(string, NULL, 16);
+
+    free(string);
+    string = NULL;
 
     return pHeader;
 }
 
 uint8_t* headerToString(Block* pBlock, size_t len) {
     uint8_t* header_str = (uint8_t*)calloc(len, sizeof(uint8_t));
-    uint8_t temp[9];
+    uint8_t hex_arr[9];
+    char* sha256_str;
 
-    sprintf(temp, "%08x", pBlock->header.version);
-    strcat(header_str, temp);
-    strcat(header_str, ConvertUint8ToHexStr(pBlock->header.prev_block, sizeof(pBlock->header.prev_block) / sizeof(uint8_t)));
-    strcat(header_str, ConvertUint8ToHexStr(pBlock->header.merkle_root, sizeof(pBlock->header.merkle_root) / sizeof(uint8_t)));
-    sprintf(temp, "%08x", pBlock->header.timestamp);
-    strcat(header_str, temp);
-    sprintf(temp, "%08x", pBlock->header.bits);
-    strcat(header_str, temp);
-    sprintf(temp, "%08x", pBlock->header.nonce);
-    strcat(header_str, temp);
+    sprintf(hex_arr, "%08x", pBlock->header.version);
+    strcat(header_str, hex_arr);
+
+    sha256_str =  ConvertUint8ToHexStr(pBlock->header.prev_block, sizeof(pBlock->header.prev_block) / sizeof(uint8_t));
+    strcat(header_str, sha256_str);
+    
+    free(sha256_str);
+    sha256_str = NULL;
+
+    sha256_str = ConvertUint8ToHexStr(pBlock->header.merkle_root, sizeof(pBlock->header.merkle_root) / sizeof(uint8_t));
+    strcat(header_str, sha256_str);
+
+    free(sha256_str);
+    sha256_str = NULL;
+
+    sprintf(hex_arr, "%08x", pBlock->header.timestamp);
+    strcat(header_str, hex_arr);
+
+    sprintf(hex_arr, "%08x", pBlock->header.bits);
+    strcat(header_str, hex_arr);
+
+    sprintf(hex_arr, "%08x", pBlock->header.nonce);
+    strcat(header_str, hex_arr);
     
     return header_str;
 }
@@ -128,6 +173,9 @@ uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
 		printf("\n\n");
         */
 
+        free(sha256_str);
+        sha256_str = NULL;
+
 		if (compare_result == 0) break;
 
 		nonce--;
@@ -180,6 +228,9 @@ uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
         printf("Compare Result : %d\n", compare_result);
 		printf("\n\n");
         */
+
+        free(sha256_str);
+        sha256_str = NULL;
        
 		if (compare_result == 0) break;
 
