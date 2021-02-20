@@ -9,28 +9,15 @@
 
 BlockHeader* stringToHeader(char* header_str) {
     BlockHeader* pHeader = malloc(sizeof(struct BlockHeaderType));
+    char* pTemp_char;
+    uint8_t* pTemp_uint8;
     
-    char* temp = NULL;
-
-    temp = slice_array(header_str, 0, 7);
-    pHeader->version = (uint32_t)strtoul(temp, NULL, 16);
-
-    temp = slice_array(header_str, 8, 71);
-    memmove(pHeader->prev_block, ConvertHexStrToUint8(temp), 32);
-
-    temp = slice_array(header_str, 72, 136);
-    memmove(pHeader->merkle_root, ConvertHexStrToUint8(temp), 32);
-
-    temp = slice_array(header_str, 137, 144);
-    pHeader->timestamp = (uint32_t)strtoul(temp, NULL, 16);
-
-    temp = slice_array(header_str, 145, 152);
-    pHeader->bits = (uint32_t)strtoul(temp, NULL, 16);
-
-    temp = slice_array(header_str, 153, 160);
-    pHeader->nonce = (uint32_t)strtoul(temp, NULL, 16);
-
-    free(temp);
+    pHeader->version = (uint32_t)strtoul(slice_array(header_str, 0, 7), NULL, 16);
+    memmove(pHeader->prev_block, ConvertHexStrToUint8(slice_array(header_str, 8, 71)), 32);
+    memmove(pHeader->merkle_root, ConvertHexStrToUint8(slice_array(header_str, 72, 135)), 32);
+    pHeader->timestamp = (uint32_t)strtoul(slice_array(header_str, 136, 143), NULL, 16);
+    pHeader->bits = (uint32_t)strtoul(slice_array(header_str, 144, 151), NULL, 16);
+    pHeader->nonce = (uint32_t)strtoul(slice_array(header_str, 152, 159), NULL, 16);
 
     return pHeader;
 }
@@ -193,7 +180,7 @@ uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
         printf("Compare Result : %d\n", compare_result);
 		printf("\n\n");
         */
-
+       
 		if (compare_result == 0) break;
 
 		nonce++;

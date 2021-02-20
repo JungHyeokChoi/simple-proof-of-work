@@ -7,9 +7,9 @@
 #include "utils.h"
 
 char* slice_array(char* array, int start_idx, int end_idx) {
-    char* slice_arr = (char*)calloc(end_idx - start_idx + 1, sizeof(char));
+    char* slice_arr = (char*)calloc(end_idx - start_idx + 2, sizeof(char));
 
-    for(int idx = start_idx; idx <= end_idx; idx++)
+    for(int idx = 0; start_idx + idx <= end_idx; idx++)
         slice_arr[idx] = array[start_idx + idx];
     slice_arr[strlen(slice_arr) + 1] = '\0';
 
@@ -30,9 +30,9 @@ char* ConvertUint8ToHexStr(uint8_t* array, size_t len) {
 uint8_t* ConvertHexStrToUint8(char* hex_str) {
     char temp[3];
 
-    uint8_t* array = (uint8_t*)calloc(strlen(hex_str) / 2, sizeof(uint8_t));
+    uint8_t* array = (uint8_t*)calloc(strlen(hex_str) / 2, sizeof(uint8_t)  );
 
-    for(int idx = 0; idx < strlen(hex_str); idx++) {
+    for(int idx = 0; idx < strlen(hex_str) / 2; idx++) {
         memcpy(temp, (hex_str + idx * 2), 2);
         temp[2] = '\0';
     

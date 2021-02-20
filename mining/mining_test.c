@@ -29,6 +29,8 @@ int main(int argc, char *argv[]) {
     block.header.bits = 0x1d00ffff;
     block.header.nonce = lower_mining(pBlock, 0x00000000, 0xffffffff);
 
+    pBlock = &block;
+
     if(verify(pBlock) == true) {
         addBlock(pList, block);
         printBlock(pList, 0);
@@ -44,8 +46,9 @@ int main(int argc, char *argv[]) {
     memmove(block.header.merkle_root, merkle_root, sizeof(merkle_root) / sizeof(uint8_t));
     block.header.timestamp = timeToHex(time(&sec));
     block.header.bits = 0x1d00ffff;
-
     block.header.nonce = upper_mining(pBlock, 0xffffffff, 0x00000000);
+
+    pBlock = &block;
 
     if(verify(pBlock)) {
         addBlock(pList, block);

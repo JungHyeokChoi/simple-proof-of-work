@@ -1,100 +1,116 @@
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<signal.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<unistd.h>
-#include<sys/wait.h>
-#include<time.h>
-#include<pthread.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <pthread.h>
+#include <errno.h> 
 
-#include "../common/common.h"
-#include "../utils/utils.h"
-#include "mining.h"
+#include "./common/common.h"
+#include "./sha256/sha256.h"
+#include "./utils/utils.h"
+#include "./mining/mining.h"
 
-pthread_mutex_t mutex_lock;
+pthread_mutex_t mutex;
 
 BlockList* pList;
 
 typedef struct MiningMultipleArgType {
     int client_sock;
-    BlockList* pList;
-    Block block
-}MiningMultipleArg;
+    Block block;
+} MiningMultipleArg;
 
-void* read_thread(void *pClient_sock) {
+void* read_blockheader(void *pClient_sock) {
     int size;
-    char hex_str[BLOCK_HEADER_STRING_SIZE]; 
+    char hex_str[BLOCK_HEADER_STRING_SIZE + (SHA256_BLOCK_SIZE * 2)];
 
     BlockHeader* pHeader = (BlockHeader*)malloc(sizeof(BlockHeader));
+    Block* pBlock;
+    Block block;
 
     while(1) {
-        if ((size = read(*(int*)pClient_sock, hex_str, BLOCK_HEADER_STRING_SIZE)) < 0) {
+        if ((size = read(*(int*)pClient_sock, hex_str, BLOCK_HEADER_STRING_SIZE + (SHA256_BLOCK_SIZE * 2))) < 0) {
             printf("Error if read. \n");
-        } else {
-            hex_str[BLOCK_HEADER_STRING_SIZE] = '\0';
+        }
+        if (mutex.__data.__lock == 0) {
+            pthread_mutex_lock(&mutex);
 
-            pHeader = stringToHeader(hex_str);
+            hex_str[BLOCK_HEADER_STRING_SIZE + (SHA256_BLOCK_SIZE * 2)] = '\0';
 
-            if(verify(pHeader) == true) {
-                return pHeader;
-            };
+            pHeader = stringToHeader(slice_array(hex_str, 64, 224));
+
+            memmove(block.block_hash, ConvertHexStrToUint8(slice_array(hex_str, 0, 63)), SHA256_BLOCK_SIZE / sizeof(uint8_t));
+            block.header.version = pHeader->version; 
+            memmove(block.header.prev_block, pHeader->prev_block, sizeof(pHeader->prev_block) / sizeof(uint8_t));
+            memmove(block.header.merkle_root, pHeader->merkle_root, sizeof(pHeader->merkle_root) / sizeof(uint8_t));
+            block.header.timestamp = pHeader->timestamp;
+            block.header.bits = pHeader->bits;
+            block.header.nonce= pHeader->nonce;
+
+            pBlock = &block;
+
+            if(verify(pBlock) == true) {
+                addBlock(pList, block);
+                printf("\nCreate Block by miner_client\n\n\n");
+            }
+            pthread_mutex_unlock(&mutex);
+
+            free(pHeader);
+
+            return NULL;
         }
     }
 }
 
-void* mining_thread(void *mining_multiple_arg) {
+void* mining(void *mining_multiple_arg) {
     int size;
-    char hex_str[BLOCK_HEADER_STRING_SIZE];
+    char hex_str[BLOCK_HEADER_STRING_SIZE + (SHA256_BLOCK_SIZE * 2)];
 
     MiningMultipleArg *multiple_arg = (MiningMultipleArg*)mining_multiple_arg;
-
     Block* pBlock = &multiple_arg->block;
 
-    while(1) {
-        multiple_arg->block.header.nonce = lower_mining(pBlock, 0x00000000, 0xffffffff);
-        pBlock = &multiple_arg->block;
-        
-        if(verify(pBlock) == true) {
-            while(fgets(hex_str, BLOCK_HEADER_STRING_SIZE, stdin) != NULL) {
-                size = strlen(hex_str);
+    multiple_arg->block.header.nonce = lower_mining(pBlock, 0x00000000, 0xffffffff);
+    pBlock = &multiple_arg->block;
+    
+    if(verify(pBlock) == true && mutex.__data.__lock == 0) {
+        pthread_mutex_lock(&mutex);
 
-                if(write(multiple_arg->client_sock, hex_str, strlen(hex_str)) != size) {
-                    printf("Error in write. \n");        
-                } else {
-                    addBlock(multiple_arg->pList, multiple_arg->block);
-                    pthread_exit(NULL);
-                }
-            }
+        strcat(hex_str, ConvertUint8ToHexStr(pBlock->block_hash, sizeof(pBlock->block_hash) / sizeof(uint8_t)));
+        strcat(hex_str, headerToString(pBlock, BLOCK_HEADER_STRING_SIZE));
+
+        size = strlen(hex_str);
+
+        if(write(multiple_arg->client_sock, hex_str, strlen(hex_str)) != size) {
+            printf("Error in write. \n");
+        } else {
+            addBlock(pList, multiple_arg->block);
+            printf("\nCreate Block by miner_server\n\n\n");
         }
     }
-}
 
-void handler() {
-  int state;
+    if(mutex.__data.__lock == 1) pthread_mutex_unlock(&mutex);
 
-  waitpid(-1, &state, WNOHANG);
-  exit(0);
-
-  return ;
+    return NULL;
 }
 
 int main(int argc, char *argv[]) {
     int server_sock, client_sock;
-    int clntlen, block_number = 0;
+    int clntlen, status, block_number = 0;
     struct sockaddr_in client_addr, server_addr;
-    struct sigaction act;
-    act.sa_handler = handler;
 
-    void* pHeader;
-
-    pthread_t read_thread, write_thread;
+    pthread_t read_thread, mining_thread;
+    pthread_attr_t attr;
 
     uint8_t prev_block[32] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x17,0xc8,0x03,0x78,0xb8,0xda,0x0e,0x33,0x55,0x9b,0x59,0x97,0xf2,0xad,0x55,0xe2,0xf7,0xd1,0x8e,0xc1,0x97,0x5b,0x97,0x17};
     uint8_t merkle_root[32] = {0x87,0x17,0x14,0xdc,0xba,0xe6,0xc8,0x19,0x3a,0x2b,0xb9,0xb2,0xa6,0x9f,0xe1,0xc0,0x44,0x03,0x99,0xf3,0x8d,0x94,0xb3,0xa0,0xf1,0xb4,0x47,0x27,0x5a,0x29,0x97,0x8a};
+
+    Block* pBlock;
 
     time_t sec;
 
@@ -113,14 +129,12 @@ int main(int argc, char *argv[]) {
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     server_addr.sin_port = htons(atoi(argv[1]));
 
-    sigaction(SIGCHLD, &act, 0);
-
     if(bind(server_sock, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
         printf("Server : can't bind local address.\n");
         exit(0);
     }
 
-    printf("Server started. \nWaiting for client.. \n");
+    printf("Server started. \nWaiting for client.. \n\n");
     listen(server_sock, 1);
 
     clntlen = sizeof(client_addr);
@@ -129,9 +143,11 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
+    pList = createBlockList();
+
     MiningMultipleArg *mining_multiple_arg = (MiningMultipleArg *)malloc(sizeof(MiningMultipleArg));
-    mining_multiple_arg->pList = createBlockList();
-  
+    mining_multiple_arg->client_sock = client_sock;
+      
     while(1) {
         printf("Create Block #%d...\n\n", block_number);
 
@@ -141,14 +157,42 @@ int main(int argc, char *argv[]) {
         mining_multiple_arg->block.header.timestamp = timeToHex(time(&sec));
         mining_multiple_arg->block.header.bits = 0x1d00ffff;
 
-        pthread_create(&read_thread, NULL, read_thread, &mining_multiple_arg->client_sock);
-        pthread_create(&write_thread, NULL, mining_thread, mining_multiple_arg);
+        pthread_mutex_init(&mutex, NULL);
 
-        pthread_join(read_thread, &pHeader);
-        pthread_join(write_thread, NULL);
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        pthread_create(&read_thread, &attr, read_blockheader, &mining_multiple_arg->client_sock);
+        pthread_attr_destroy(&attr);
+
+        pthread_attr_init(&attr);
+        pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+        pthread_create(&mining_thread, NULL, mining, mining_multiple_arg);
+        pthread_attr_destroy(&attr);
+
+        while(1) {
+            status = pthread_kill(read_thread, 0);
+            if(status == ESRCH) {
+                pthread_cancel(mining_thread);
+                break;
+            }
+
+            status = pthread_kill(mining_thread, 0);
+            if(status == ESRCH) {
+                pthread_cancel(read_thread);
+                break;
+            }
+        }
+        printBlock(pList, block_number);
+        printf("\n");
+
+        pBlock = getBlock(pList, block_number);
+
+        memmove(prev_block, pBlock->block_hash, sizeof(pBlock->block_hash) / sizeof(uint8_t));
 
         block_number++;
     }
+
+    pthread_mutex_destroy(&mutex);
 
     close(server_sock);
     close(client_sock);
