@@ -1,6 +1,6 @@
 # Simple-proof-of-work
 
- #### - This is simple proof-of-work(pow) example <br />
+ ### This is simple proof-of-work(pow) example <br /><br />
 
 ## 1. environment
 
