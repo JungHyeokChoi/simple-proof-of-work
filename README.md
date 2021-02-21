@@ -1,6 +1,7 @@
 # Simple-proof-of-work
 <br />
-
+ - **This is a simple proof-of-work example**
+<br />
 
 ## 1. environment
 
