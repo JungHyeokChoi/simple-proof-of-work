@@ -143,7 +143,7 @@ uint32_t upper_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     uint8_t* header_str = headerToString(pBlock, BLOCK_HEADER_STRING_SIZE);
     uint8_t sha256[SHA256_BLOCK_SIZE];
 
-	uint32_t nonce = 0;
+	uint32_t nonce = nonce_start;
 
 	SHA256_CTX ctx;
 
@@ -199,7 +199,7 @@ uint32_t lower_mining(Block* pBlock, uint32_t nonce_start, uint32_t nonce_end) {
     uint8_t* header_str = headerToString(pBlock, BLOCK_HEADER_STRING_SIZE);
     uint8_t sha256[SHA256_BLOCK_SIZE];
 
-	uint32_t nonce = 0;
+	uint32_t nonce = nonce_start;
 
 	SHA256_CTX ctx;
 
