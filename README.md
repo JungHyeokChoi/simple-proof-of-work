@@ -1,5 +1,5 @@
 # Simple-proof-of-work
-
+<br />
 
 
 ## 1. environment
