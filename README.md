@@ -68,7 +68,7 @@ make all
 
 
 
-#### d. clean
+#### d. Clean
 
 ```
 make clean
