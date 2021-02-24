@@ -38,11 +38,10 @@ int addBlock(BlockList* pList, Block block) {
             pNewBlock->pBlock = NULL;
 
             pPreBlock = &(pList->genesisBlock);
-            for (i = 0; i < pList->currentBlockCount; i++) {
+	    while(pPreBlock->pBlock != NULL) {
                 pPreBlock = pPreBlock->pBlock;
-            }
+	    }
 
-            pNewBlock->pBlock = pPreBlock->pBlock;
             pPreBlock->pBlock = pNewBlock;
 
             pList->currentBlockCount++;
@@ -61,15 +60,14 @@ int addBlock(BlockList* pList, Block block) {
 
 int removeBlock(BlockList* pList, int block_number) {
 	int ret = false;
-	int i = 0;
-	int arrayCount = 0;
+	int i = 0, count;
 
 	Block* pBlock = NULL;
 	Block* pDelBlock = NULL;
 
 	if (pList != NULL) {
-		arrayCount = getBlockListLengh(pList);
-		if (block_number >= 0 && block_number < arrayCount) {
+		count = getBlockListLengh(pList);
+		if (block_number >= 0 && block_number < count) {
 			pBlock = &(pList->genesisBlock);
 			for (i = 0; i < block_number; i++) {
 				pBlock = pBlock->pBlock;
